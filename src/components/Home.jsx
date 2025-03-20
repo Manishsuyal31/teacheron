@@ -17,7 +17,9 @@ export default function Home() {
       rating: 4,
     });
 
-    // setProducts(res.data);
+    setProducts((prev) => {
+      return [...prev, res.data];
+    });
   }
 
   useEffect(() => {

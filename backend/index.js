@@ -1,49 +1,64 @@
 const express = require("express");
 const cors = require("cors");
+const mongoose = require("mongoose");
 
 const app = express();
 
-const products = [
+// 1. connect to mongodb
+
+async function connectToMongodb() {
+  const mongoURI = "mongodb://localhost:27017/ecommerce";
+
+  await mongoose.connect(mongoURI);
+
+  console.log("Connected to MongoDB");
+}
+
+connectToMongodb();
+
+// 2. create a schema
+const productSchema = new mongoose.Schema(
   {
-    id: 1,
-    name: "Shoes",
-    price: 500,
-    rating: 5,
+    name: String,
+    price: Number,
+    rating: Number,
   },
   {
-    id: 2,
-    name: "Shirt",
-    price: 20,
-    rating: 4,
-  },
-  {
-    id: 3,
-    name: "Pants",
-    price: 30,
-    rating: 3,
-  },
-];
+    collection: "myProduct",
+  }
+);
+
+// 3 create a model
+const ProductModel = mongoose.model("Product", productSchema);
 
 app.use(cors());
 app.use(express.json());
 
-function getHello(req, res) {
+async function getProducts(req, res) {
+  const products = await ProductModel.find();
+
   res.json(products);
 }
 
-app.get("/products", getHello);
+app.get("/products", getProducts);
 
-function createProduct(req, res) {
-  products.push({
-    id: products.length + 1,
-    name: req.body.name,
-    price: req.body.price,
-    rating: req.body.rating,
-  });
+async function createProduct(req, res) {
+  const product = await ProductModel.create(req.body);
 
-  res.json(products);
+  res.json(product);
 }
 
 app.post("/products", createProduct);
+
+async function findProduct(req, res) {
+  const product = await ProductModel.findById(req.query.id);
+
+  res.json(product);
+}
+
+// ProductModel.findByIdAndDelete
+// ProductModel.findByIdAndUpdate
+
+app.get("/product", findProduct);
 
 app.listen(3000);
